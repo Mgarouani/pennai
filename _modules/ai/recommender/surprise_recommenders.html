@@ -1,0 +1,501 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ai.recommender.surprise_recommenders &mdash; PennAI 0.17-SNAPSHOT documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="../../../_static/logo_blank_small.png"/>
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PennAI
+          
+
+          
+            
+            <img src="../../../_static/logo_blank_small.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.17-SNAPSHOT
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Analysis Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../userguide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developerguide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ai.html">AI Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../recommenders.html">Recommenders</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">PennAI</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>ai.recommender.surprise_recommenders</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ai.recommender.surprise_recommenders</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Recommender system for Penn AI.</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="c1"># import json </span>
+<span class="c1"># import urllib.request, urllib.parse</span>
+<span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">BaseRecommender</span>
+<span class="c1">#from ..metalearning import get_metafeatures</span>
+<span class="kn">from</span> <span class="nn">sklearn.preprocessing</span> <span class="kn">import</span> <span class="n">RobustScaler</span> 
+<span class="kn">from</span> <span class="nn">sklearn.pipeline</span> <span class="kn">import</span> <span class="n">Pipeline</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span><span class="p">,</span> <span class="n">OrderedDict</span>
+<span class="kn">import</span> <span class="nn">pdb</span>
+<span class="kn">from</span> <span class="nn">surprise</span> <span class="kn">import</span> <span class="p">(</span><span class="n">Reader</span><span class="p">,</span> <span class="n">Dataset</span><span class="p">,</span> <span class="n">CoClustering</span><span class="p">,</span> <span class="n">SlopeOne</span><span class="p">,</span> <span class="n">KNNWithMeans</span><span class="p">,</span>
+                      <span class="n">KNNBasic</span><span class="p">,</span> <span class="n">mySVD</span><span class="p">)</span> 
+<span class="c1"># import pyximport</span>
+<span class="c1"># pyximport.install()</span>
+<span class="c1"># from .svdedit import mySVD</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
+<span class="kn">import</span> <span class="nn">itertools</span> <span class="k">as</span> <span class="nn">it</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+<span class="n">ch</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">()</span>
+<span class="n">formatter</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%(module)s</span><span class="s1">: </span><span class="si">%(levelname)s</span><span class="s1">: </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="n">ch</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">formatter</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">ch</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="SurpriseRecommender"><a class="viewcode-back" href="../../../api.html#ai.recommender.surprise_recommenders.SurpriseRecommender">[docs]</a><span class="k">class</span> <span class="nc">SurpriseRecommender</span><span class="p">(</span><span class="n">BaseRecommender</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Class to support generic recommenders from the Surprise library.</span>
+<span class="sd">    Not intended to be used as a standalone class. </span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    ml_type: str, &#39;classifier&#39; or &#39;regressor&#39;</span>
+<span class="sd">        Recommending classifiers or regressors. Used to determine ML options.</span>
+<span class="sd">    </span>
+<span class="sd">    metric: str (default: accuracy for classifiers, mse for regressors)</span>
+<span class="sd">        The metric by which to assess performance on the datasets.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ml_type</span><span class="o">=</span><span class="s1">&#39;classifier&#39;</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ml_p</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">algo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span> 
+        <span class="sd">&quot;&quot;&quot;Initialize recommendation system.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;SurpriseRecommender&#39;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Do not instantiate the SurpriseRecommender class &#39;</span>
+            <span class="s1">&#39;directly; use one of the method-specific classes instead.&#39;</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">ml_type</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">ml_p</span><span class="p">)</span>
+        
+        <span class="c1"># store results</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+        <span class="c1"># reader for translating btw PennAI results and Suprise training set</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reader</span> <span class="o">=</span> <span class="n">Reader</span><span class="p">()</span>
+        <span class="c1"># algo is the online Surprise-based rec system</span>
+        <span class="c1"># if algo is None:</span>
+        <span class="c1">#     self.algo = KNNBasic() </span>
+        <span class="c1"># else:</span>
+        <span class="c1">#     self.algo = algo</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">first_fit</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_epochs</span> <span class="o">=</span> <span class="mi">10</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_epochs</span> <span class="o">=</span> <span class="mi">100</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">algo_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">algo</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
+
+<div class="viewcode-block" id="SurpriseRecommender.update"><a class="viewcode-back" href="../../../api.html#ai.recommender.surprise_recommenders.SurpriseRecommender.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">results_data</span><span class="p">,</span> <span class="n">results_mf</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="s1">&#39;pennai&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update ML / Parameter recommendations based on overall performance in </span>
+<span class="sd">        results_data.</span>
+
+<span class="sd">        :param results_data: DataFrame with columns corresponding to:</span>
+<span class="sd">                &#39;dataset&#39;</span>
+<span class="sd">                &#39;algorithm&#39;</span>
+<span class="sd">                &#39;parameters&#39;</span>
+<span class="sd">                self.metric</span>
+<span class="sd">        :param results_mf: metafeatures for the datasets in results_data </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># update trained dataset models and hash table</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">results_data</span><span class="p">,</span> <span class="n">results_mf</span><span class="p">,</span> <span class="n">source</span><span class="p">)</span>
+
+        <span class="c1"># update internal model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_model</span><span class="p">(</span><span class="n">results_data</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SurpriseRecommender.update_training_data"><a class="viewcode-back" href="../../../api.html#ai.recommender.surprise_recommenders.SurpriseRecommender.update_training_data">[docs]</a>    <span class="k">def</span> <span class="nf">update_training_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">results_data</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Fill in new data from the results and set trainset for svd&quot;&quot;&quot;</span>
+        <span class="n">results_data</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s1">&#39;algorithm-parameters&#39;</span><span class="p">]</span> <span class="o">=</span>  <span class="p">(</span>
+                <span class="n">results_data</span><span class="p">[</span><span class="s1">&#39;algorithm&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span> <span class="o">+</span> <span class="s1">&#39;|&#39;</span> <span class="o">+</span>
+                <span class="n">results_data</span><span class="p">[</span><span class="s1">&#39;parameter_hash&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+        <span class="n">results_data</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">metric</span><span class="p">:</span><span class="s1">&#39;score&#39;</span><span class="p">},</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results_df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results_df</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">results_data</span><span class="p">[[</span><span class="s1">&#39;algorithm-parameters&#39;</span><span class="p">,</span><span class="s1">&#39;_id&#39;</span><span class="p">,</span><span class="s1">&#39;score&#39;</span><span class="p">]]</span>
+                                                <span class="p">)</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">Dataset</span><span class="o">.</span><span class="n">load_from_df</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">results_df</span><span class="p">[[</span><span class="s1">&#39;_id&#39;</span><span class="p">,</span> 
+                                                     <span class="s1">&#39;algorithm-parameters&#39;</span><span class="p">,</span> 
+                                                     <span class="s1">&#39;score&#39;</span><span class="p">]],</span> 
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="p">,</span> <span class="n">rating_scale</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+        <span class="c1"># build training set from the data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">trainset</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">build_full_trainset</span><span class="p">()</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;self.trainset # of ML-P combos: &#39;</span> <span class="o">+</span> 
+                <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">trainset</span><span class="o">.</span><span class="n">n_items</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;self.trainset # of datasets: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">trainset</span><span class="o">.</span><span class="n">n_users</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="SurpriseRecommender.update_model"><a class="viewcode-back" href="../../../api.html#ai.recommender.surprise_recommenders.SurpriseRecommender.update_model">[docs]</a>    <span class="k">def</span> <span class="nf">update_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">results_data</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Stores new results and updates algo.&quot;&quot;&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;updating &#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">algo_name</span><span class="o">+</span><span class="s1">&#39; model&#39;</span><span class="p">)</span>
+        <span class="c1"># shuffle the results data the first time</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">first_fit</span><span class="p">:</span>
+            <span class="n">results_data</span> <span class="o">=</span> <span class="n">results_data</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">frac</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_training_data</span><span class="p">(</span><span class="n">results_data</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;fitting self.algo...&#39;</span><span class="p">)</span>
+        <span class="c1"># set the number of training iterations proportionally to the amount of</span>
+        <span class="c1"># results_data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">algo</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">trainset</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;done.&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">first_fit</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">init_results_data</span> <span class="o">=</span> <span class="n">results_data</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">first_fit</span><span class="o">=</span><span class="kc">False</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;model &#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">algo_name</span><span class="o">+</span><span class="s1">&#39; updated&#39;</span><span class="p">)</span> </div>
+
+<div class="viewcode-block" id="SurpriseRecommender.recommend"><a class="viewcode-back" href="../../../api.html#ai.recommender.surprise_recommenders.SurpriseRecommender.recommend">[docs]</a>    <span class="k">def</span> <span class="nf">recommend</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset_id</span><span class="p">,</span> <span class="n">n_recs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dataset_mf</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a model and parameter values expected to do best on dataset.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        dataset_id: string</span>
+<span class="sd">            ID of the dataset for which the recommender is generating </span>
+<span class="sd">            recommendations.</span>
+<span class="sd">        n_recs: int (default: 1), optional</span>
+<span class="sd">            Return a list of length n_recs in order of estimators and </span>
+<span class="sd">            parameters expected to do </span>
+<span class="sd">            best.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># dataset hash table</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">recommend</span><span class="p">(</span><span class="n">dataset_id</span><span class="p">,</span> <span class="n">n_recs</span><span class="p">,</span> <span class="n">dataset_mf</span><span class="p">)</span>
+        <span class="c1"># dataset_hash = self.dataset_id_to_hash[dataset_id]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">predictions</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">filtered</span> <span class="o">=</span><span class="mi">0</span>
+            <span class="k">for</span> <span class="n">alg_params</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">mlp_combos</span><span class="p">:</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">dataset_id</span><span class="o">+</span><span class="s1">&#39;|&#39;</span><span class="o">+</span><span class="n">alg_params</span> <span class="ow">not</span> <span class="ow">in</span> 
+                    <span class="bp">self</span><span class="o">.</span><span class="n">trained_dataset_models</span><span class="p">):</span>  
+                    <span class="n">predictions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">algo</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">dataset_id</span><span class="p">,</span> <span class="n">alg_params</span><span class="p">,</span>
+                                                         <span class="n">clip</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">filtered</span> <span class="o">+=</span><span class="mi">1</span>
+                    <span class="c1"># logger.debug(&#39;skipping &#39; + str(dataset_id) +&#39;|&#39;+</span>
+                    <span class="c1">#         alg_params.split(&#39;|&#39;)[0] + </span>
+                    <span class="c1">#       str(self.param_htable[int(alg_params.split(&#39;|&#39;)[1])]) +</span>
+                    <span class="c1">#       &#39; which has already been recommended&#39;)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;filtered &#39;</span><span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">filtered</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; recommendations&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;getting top n predictions&#39;</span><span class="p">)</span> 
+            <span class="n">ml_rec</span><span class="p">,</span> <span class="n">phash_rec</span><span class="p">,</span> <span class="n">score_rec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_top_n</span><span class="p">(</span><span class="n">predictions</span><span class="p">,</span> <span class="n">n_recs</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;returning ml recs&#39;</span><span class="p">)</span> 
+            <span class="c1"># for (m,p,r) in zip(ml_rec, p_rec, score_rec):</span>
+            <span class="c1">#     print(&#39;ml_rec:&#39;, m, &#39;p_rec&#39;, p, &#39;score_rec&#39;,r)</span>
+            
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span> <span class="s1">&#39;error running self.best_model_prediction for&#39;</span><span class="o">+</span>
+                    <span class="nb">str</span><span class="p">(</span><span class="n">dataset_id</span><span class="p">))</span>
+            <span class="k">raise</span> <span class="n">e</span> 
+        <span class="c1"># update the recommender&#39;s memory with the new algorithm-parameter combos </span>
+        <span class="c1"># that it recommended</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_trained_dataset_models_from_rec</span><span class="p">(</span><span class="n">dataset_id</span><span class="p">,</span> <span class="n">ml_rec</span><span class="p">,</span> <span class="n">phash_rec</span><span class="p">)</span>
+
+        <span class="n">p_rec</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">param_htable</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">ph</span><span class="p">)]</span> <span class="k">for</span> <span class="n">ph</span> <span class="ow">in</span> <span class="n">phash_rec</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">ml_rec</span><span class="p">,</span> <span class="n">p_rec</span><span class="p">,</span> <span class="n">score_rec</span></div>
+
+<div class="viewcode-block" id="SurpriseRecommender.get_top_n"><a class="viewcode-back" href="../../../api.html#ai.recommender.surprise_recommenders.SurpriseRecommender.get_top_n">[docs]</a>    <span class="k">def</span> <span class="nf">get_top_n</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">predictions</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Return the top-N recommendation for each user from a set of predictions.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            predictions(list of Prediction objects): The list of predictions, as</span>
+<span class="sd">                returned by the test method of an algorithm.</span>
+<span class="sd">            n(int): The number of recommendation to output for each user. Default</span>
+<span class="sd">                is 10.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            ml recs, parameter recs, and their scores in three lists</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="c1"># grabs the ml ids and their estimated scores for this dataset </span>
+        <span class="n">top_n</span> <span class="o">=</span> <span class="p">[]</span> 
+        <span class="n">ml_dist</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">uid</span><span class="p">,</span> <span class="n">iid</span><span class="p">,</span> <span class="n">true_r</span><span class="p">,</span> <span class="n">est</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">predictions</span><span class="p">:</span>
+            <span class="n">top_n</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">iid</span><span class="p">,</span> <span class="n">est</span><span class="p">))</span>
+            <span class="n">ml</span> <span class="o">=</span> <span class="n">iid</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;|&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">ml</span> <span class="ow">in</span> <span class="n">ml_dist</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">ml_dist</span><span class="p">[</span><span class="n">ml</span><span class="p">]</span> <span class="o">+=</span> <span class="mf">1.0</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">ml_dist</span><span class="p">[</span><span class="n">ml</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="n">n_ml</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ml_dist</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+        <span class="c1">######</span>
+        <span class="c1"># Shuffle top_n just to remove tied algorithm bias when sorting</span>
+        <span class="c1"># Make uniform random choices from the Algorithms, then uniform random</span>
+        <span class="c1"># choices from their parameters to shuffle top_n</span>
+        <span class="c1"># the probability for each ML method is 1/total_methods/(# instances of that</span>
+        <span class="c1"># method)</span>
+        <span class="n">inv_ml_dist</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span><span class="mi">1</span><span class="o">/</span><span class="n">n_ml</span><span class="o">/</span><span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">ml_dist</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="n">top_n_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">inv_ml_dist</span><span class="p">[</span><span class="n">tn</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;|&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]]</span> 
+            <span class="k">for</span> <span class="n">tn</span> <span class="ow">in</span> <span class="n">top_n</span><span class="p">])</span>
+        <span class="n">top_n_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">top_n</span><span class="p">))</span>
+        <span class="n">top_n_idx_s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">top_n_idx</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">top_n</span><span class="p">),</span> <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> 
+                                       <span class="n">p</span><span class="o">=</span><span class="n">top_n_dist</span><span class="p">)</span>
+        <span class="n">top_n</span> <span class="o">=</span> <span class="p">[</span><span class="n">top_n</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">top_n_idx_s</span><span class="p">]</span>
+        <span class="c1">#####</span>
+        
+        <span class="c1"># sort top_n</span>
+        <span class="n">top_n</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">top_n</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">top_n</span> <span class="o">=</span> <span class="n">top_n</span><span class="p">[:</span><span class="n">n</span><span class="p">]</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;filtered top_n:&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">top_n</span><span class="p">))</span> 
+        <span class="n">ml_rec</span> <span class="o">=</span> <span class="p">[</span><span class="n">n</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;|&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">top_n</span><span class="p">]</span>
+        <span class="n">p_rec</span> <span class="o">=</span> <span class="p">[</span><span class="n">n</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;|&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">top_n</span><span class="p">]</span>
+        <span class="n">score_rec</span> <span class="o">=</span> <span class="p">[</span><span class="n">n</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">top_n</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">ml_rec</span><span class="p">,</span> <span class="n">p_rec</span><span class="p">,</span> <span class="n">score_rec</span> </div></div>
+
+<div class="viewcode-block" id="CoClusteringRecommender"><a class="viewcode-back" href="../../../api.html#ai.recommender.surprise_recommenders.CoClusteringRecommender">[docs]</a><span class="k">class</span> <span class="nc">CoClusteringRecommender</span><span class="p">(</span><span class="n">SurpriseRecommender</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Generates recommendations via CoClustering, see</span>
+<span class="sd">    https://surprise.readthedocs.io/en/stable/co_clustering.html</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ml_type</span><span class="o">=</span><span class="s1">&#39;classifier&#39;</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ml_p</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">algo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span> 
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">ml_type</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">ml_p</span><span class="p">,</span> <span class="n">algo</span><span class="p">)</span>
+        <span class="c1"># set n clusters for ML equal to # of ML methods</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">algo</span> <span class="o">=</span> <span class="n">CoClustering</span><span class="p">(</span><span class="n">n_cltr_i</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ml_p</span><span class="o">.</span><span class="n">algorithm</span><span class="o">.</span><span class="n">nunique</span><span class="p">(),</span>
+                                 <span class="n">n_cltr_u</span> <span class="o">=</span> <span class="mi">10</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="KNNWithMeansRecommender"><a class="viewcode-back" href="../../../api.html#ai.recommender.surprise_recommenders.KNNWithMeansRecommender">[docs]</a><span class="k">class</span> <span class="nc">KNNWithMeansRecommender</span><span class="p">(</span><span class="n">SurpriseRecommender</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Generates recommendations via KNNWithMeans, see</span>
+<span class="sd">    https://surprise.readthedocs.io/en/stable/knn_inspired.html</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">algo</span> <span class="o">=</span> <span class="n">KNNWithMeans</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="KNNDatasetRecommender"><a class="viewcode-back" href="../../../api.html#ai.recommender.surprise_recommenders.KNNDatasetRecommender">[docs]</a><span class="k">class</span> <span class="nc">KNNDatasetRecommender</span><span class="p">(</span><span class="n">SurpriseRecommender</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Generates recommendations via KNN with clusters defined over datasets, see</span>
+<span class="sd">    https://surprise.readthedocs.io/en/stable/knn_inspired.html</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">algo</span> <span class="o">=</span> <span class="n">KNNBasic</span><span class="p">(</span><span class="n">sim_options</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;user_based&#39;</span><span class="p">:</span><span class="kc">True</span><span class="p">})</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">algo_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;KNN-Dataset&#39;</span> </div>
+
+<div class="viewcode-block" id="KNNMLRecommender"><a class="viewcode-back" href="../../../api.html#ai.recommender.surprise_recommenders.KNNMLRecommender">[docs]</a><span class="k">class</span> <span class="nc">KNNMLRecommender</span><span class="p">(</span><span class="n">SurpriseRecommender</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Generates recommendations via KNN with clusters defined over algorithms, see</span>
+<span class="sd">    https://surprise.readthedocs.io/en/stable/knn_inspired.html</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">algo</span> <span class="o">=</span> <span class="n">KNNBasic</span><span class="p">(</span><span class="n">sim_options</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;user_based&#39;</span><span class="p">:</span><span class="kc">False</span><span class="p">})</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">algo_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;KNN-ML&#39;</span> </div>
+
+<div class="viewcode-block" id="SlopeOneRecommender"><a class="viewcode-back" href="../../../api.html#ai.recommender.surprise_recommenders.SlopeOneRecommender">[docs]</a><span class="k">class</span> <span class="nc">SlopeOneRecommender</span><span class="p">(</span><span class="n">SurpriseRecommender</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Generates recommendations via SlopeOne, see</span>
+<span class="sd">    https://surprise.readthedocs.io/en/stable/slope_one.html</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">algo</span> <span class="o">=</span> <span class="n">SlopeOne</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="SVDRecommender"><a class="viewcode-back" href="../../../api.html#ai.recommender.surprise_recommenders.SVDRecommender">[docs]</a><span class="k">class</span> <span class="nc">SVDRecommender</span><span class="p">(</span><span class="n">SurpriseRecommender</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;SVD recommender.</span>
+<span class="sd">    see https://surprise.readthedocs.io/en/stable/matrix_factorization.html </span>
+<span class="sd">    Recommends machine learning algorithms and parameters using the SVD algorithm.</span>
+<span class="sd">        - stores ML + P and every dataset.</span>
+<span class="sd">        - learns a matrix factorization on the non-missing data.</span>
+<span class="sd">        - given a dataset, estimates the rankings of all ML+P and returns the top </span>
+<span class="sd">        n_recs. </span>
+
+<span class="sd">    Note that we use a custom online version of SVD found here:</span>
+<span class="sd">    https://github.com/lacava/surprise</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">algo</span> <span class="o">=</span> <span class="n">mySVD</span><span class="p">(</span><span class="n">n_factors</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">biased</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">init_mean</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                          <span class="n">init_std_dev</span><span class="o">=.</span><span class="mi">2</span><span class="p">,</span> <span class="n">lr_all</span><span class="o">=.</span><span class="mi">01</span><span class="p">,</span>
+                          <span class="n">reg_all</span><span class="o">=.</span><span class="mi">02</span><span class="p">,</span> <span class="n">lr_bu</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">lr_bi</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">lr_pu</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> 
+                          <span class="n">lr_qi</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">reg_bu</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">reg_bi</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">reg_pu</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> 
+                          <span class="n">reg_qi</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    
+    
+<div class="viewcode-block" id="SVDRecommender.update_model"><a class="viewcode-back" href="../../../api.html#ai.recommender.surprise_recommenders.SVDRecommender.update_model">[docs]</a>    <span class="k">def</span> <span class="nf">update_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">results_data</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Stores new results and updates SVD.&quot;&quot;&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;updating SVD model&#39;</span><span class="p">)</span>
+        <span class="c1"># shuffle the results data the first time</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">first_fit</span><span class="p">:</span>
+            <span class="n">results_data</span> <span class="o">=</span> <span class="n">results_data</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">frac</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_training_data</span><span class="p">(</span><span class="n">results_data</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;fitting self.algo...&#39;</span><span class="p">)</span>
+        <span class="c1"># set the number of training iterations proportionally to the amount of</span>
+        <span class="c1"># results_data</span>
+        <span class="c1"># self.algo.n_epochs = min(len(results_data),self.max_epochs)</span>
+        <span class="c1"># self.algo.n_epochs = max(10,self.algo.n_epochs)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">algo</span><span class="o">.</span><span class="n">n_epochs</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">results_data</span><span class="p">),</span><span class="bp">self</span><span class="o">.</span><span class="n">max_epochs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">algo</span><span class="o">.</span><span class="n">n_epochs</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">algo</span><span class="o">.</span><span class="n">n_epochs</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">min_epochs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">algo</span><span class="o">.</span><span class="n">partial_fit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">trainset</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;done.&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">first_fit</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">init_results_data</span> <span class="o">=</span> <span class="n">results_data</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">first_fit</span><span class="o">=</span><span class="kc">False</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;model SVD updated&#39;</span><span class="p">)</span> </div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Penn
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

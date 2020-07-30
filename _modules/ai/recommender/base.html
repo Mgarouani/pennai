@@ -1,0 +1,371 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ai.recommender.base &mdash; PennAI 0.17-SNAPSHOT documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="../../../_static/logo_blank_small.png"/>
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PennAI
+          
+
+          
+            
+            <img src="../../../_static/logo_blank_small.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.17-SNAPSHOT
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Analysis Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../userguide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developerguide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ai.html">AI Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../recommenders.html">Recommenders</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">PennAI</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>ai.recommender.base</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ai.recommender.base</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Recommender system for Penn AI.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+<span class="n">ch</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">()</span>
+<span class="n">formatter</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%(module)s</span><span class="s1">: </span><span class="si">%(levelname)s</span><span class="s1">: </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="n">ch</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">formatter</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">ch</span><span class="p">)</span>
+<span class="kn">import</span> <span class="nn">pdb</span> 
+
+<div class="viewcode-block" id="BaseRecommender"><a class="viewcode-back" href="../../../api.html#ai.recommender.base.BaseRecommender">[docs]</a><span class="k">class</span> <span class="nc">BaseRecommender</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Base recommender for PennAI</span>
+
+<span class="sd">    The BaseRecommender is not intended to be used directly; it is a skeleton class</span>
+<span class="sd">    defining the interface for future recommenders within the PennAI project.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    ml_type: str, &#39;classifier&#39; or &#39;regressor&#39;</span>
+<span class="sd">        Recommending classifiers or regressors. Used to determine ML options.</span>
+
+<span class="sd">    metric: str (default: accuracy for classifiers, mse for regressors)</span>
+<span class="sd">        The metric by which to assess performance on the datasets.</span>
+
+<span class="sd">    ml_p: DataFrame (default: None)</span>
+<span class="sd">        Contains all valid ML parameter combos, with columns &#39;algorithm&#39; and</span>
+<span class="sd">        &#39;parameters&#39;</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ml_type</span><span class="o">=</span><span class="s1">&#39;classifier&#39;</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ml_p</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">random_state</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize recommendation system.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">ml_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;classifier&#39;</span><span class="p">,</span> <span class="s1">&#39;regressor&#39;</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;ml_type must be &quot;classifier&quot; or &quot;regressor&quot;&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ml_type</span> <span class="o">=</span> <span class="n">ml_type</span>
+        
+        <span class="k">if</span> <span class="n">metric</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">metric</span><span class="o">=</span><span class="s1">&#39;bal_accuracy&#39;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ml_type</span><span class="o">==</span><span class="s1">&#39;classifier&#39;</span> <span class="k">else</span> <span class="s1">&#39;mse&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">metric</span> <span class="o">=</span> <span class="n">metric</span>
+
+        <span class="c1"># maintain a set of dataset-algorithm-parameter combinations that have </span>
+        <span class="c1"># already been evaluated</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">trained_dataset_models</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="c1"># hash table for parameter options</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">param_htable</span> <span class="o">=</span> <span class="p">{}</span>
+        
+        <span class="c1"># get ml+p combos (note: this triggers a property in base recommender)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ml_htable</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ml_p</span> <span class="o">=</span> <span class="n">ml_p</span>
+
+
+<div class="viewcode-block" id="BaseRecommender.update"><a class="viewcode-back" href="../../../api.html#ai.recommender.base.BaseRecommender.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">results_data</span><span class="p">,</span> <span class="n">results_mf</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="s1">&#39;pennai&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update ML / Parameter recommendations.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        results_data: DataFrame </span>
+<span class="sd">            columns corresponding to:</span>
+<span class="sd">            &#39;algorithm&#39;</span>
+<span class="sd">            &#39;parameters&#39;</span>
+<span class="sd">            self.metric</span>
+
+<span class="sd">        results_mf: DataFrame, optional </span>
+<span class="sd">            columns corresponding to metafeatures of each dataset in </span>
+<span class="sd">            results_data.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">results_data</span><span class="o">.</span><span class="n">isna</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;There are NaNs in results_data.&#39;</span><span class="p">)</span>
+            <span class="c1">#logger.warning(str(results_data))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">results_data</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;Dropping NaN results.&#39;</span><span class="p">)</span>
+            <span class="n">results_data</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> 
+
+        <span class="c1"># update parameter hash table</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">param_htable</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="nb">hash</span><span class="p">(</span><span class="nb">frozenset</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">items</span><span class="p">())):</span><span class="n">x</span> 
+                <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">results_data</span><span class="p">[</span><span class="s1">&#39;parameters&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">})</span>
+        
+        <span class="c1"># store parameter_hash variable in results_data </span>
+        <span class="n">results_data</span><span class="p">[</span><span class="s1">&#39;parameter_hash&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">results_data</span><span class="p">[</span><span class="s1">&#39;parameters&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>
+                <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="nb">hash</span><span class="p">(</span><span class="nb">frozenset</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">items</span><span class="p">()))))</span>
+       
+        <span class="c1"># store hash dataset ids</span>
+        <span class="c1"># self.dataset_id_to_hash.update({d:results_mf.loc[d][&#39;dataset_id&#39;]</span>
+        <span class="c1">#         for d in results_mf.index})</span>
+        <span class="c1"># results_data[&#39;_id&#39;] = results_data[&#39;dataset_id&#39;].apply(lambda x:</span>
+        <span class="c1">#         self.dataset_id_to_hash[x])</span>
+
+        <span class="c1"># update results list </span>
+        <span class="k">if</span> <span class="n">source</span> <span class="o">==</span> <span class="s1">&#39;pennai&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">update_trained_dataset_models_from_df</span><span class="p">(</span><span class="n">results_data</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BaseRecommender.recommend"><a class="viewcode-back" href="../../../api.html#ai.recommender.base.BaseRecommender.recommend">[docs]</a>    <span class="k">def</span> <span class="nf">recommend</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_recs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dataset_mf</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a model and parameter values expected to do best on dataset.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        dataset_id: string</span>
+<span class="sd">            ID of the dataset for which the recommender is generating </span>
+<span class="sd">            recommendations.</span>
+<span class="sd">        n_recs: int (default: 1), optional</span>
+<span class="sd">            Return a list of length n_recs in order of estimators and parameters </span>
+<span class="sd">            expected to do best.</span>
+<span class="sd">        dataset_mf: DataFrame </span>
+<span class="sd">            metafeatures of the dataset represented by dataset_id</span>
+<span class="sd">        &quot;&quot;&quot;</span></div>
+        <span class="c1"># self.dataset_id_to_hash.update(</span>
+        <span class="c1">#         {dataset_id:dataset_mf[&#39;_id&#39;].values[0]})</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">ml_p</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;getting ml_p&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ml_p</span>
+
+    <span class="nd">@ml_p</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">ml_p</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;setting ml_p&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1">#filter out SVC (temporary)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_ml_p</span> <span class="o">=</span> <span class="n">value</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;setting hash table&#39;</span><span class="p">)</span>
+            <span class="c1"># maintain a parameter hash table for parameter settings</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">param_htable</span> <span class="o">=</span> <span class="p">{</span><span class="nb">hash</span><span class="p">(</span><span class="nb">frozenset</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">items</span><span class="p">())):</span><span class="n">x</span> 
+                    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ml_p</span><span class="p">[</span><span class="s1">&#39;parameters&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">}</span>
+            <span class="c1"># machine learning - parameter combinations</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mlp_combos</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ml_p</span><span class="p">[</span><span class="s1">&#39;algorithm&#39;</span><span class="p">]</span><span class="o">+</span><span class="s1">&#39;|&#39;</span><span class="o">+</span>
+                               <span class="bp">self</span><span class="o">.</span><span class="n">_ml_p</span><span class="p">[</span><span class="s1">&#39;parameters&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span>
+                                   <span class="nb">str</span><span class="p">(</span><span class="nb">hash</span><span class="p">(</span><span class="nb">frozenset</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">items</span><span class="p">())))))</span>
+            <span class="c1"># filter out duplicates</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mlp_combos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mlp_combos</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span>
+            <span class="c1"># set ml_htable</span>
+            <span class="k">if</span> <span class="s1">&#39;alg_name&#39;</span> <span class="ow">in</span> <span class="n">value</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ml_htable</span> <span class="o">=</span> <span class="p">{</span>
+                        <span class="n">k</span><span class="p">:</span><span class="n">v</span> <span class="k">for</span> <span class="n">v</span><span class="p">,</span><span class="n">k</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="s1">&#39;alg_name&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">(),</span>
+                        <span class="n">value</span><span class="p">[</span><span class="s1">&#39;algorithm&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span>
+                        <span class="p">}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;value of ml_p is None&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;param_htable:</span><span class="si">{}</span><span class="s1"> objects&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">param_htable</span><span class="p">)))</span>
+
+<div class="viewcode-block" id="BaseRecommender.update_trained_dataset_models_from_df"><a class="viewcode-back" href="../../../api.html#ai.recommender.base.BaseRecommender.update_trained_dataset_models_from_df">[docs]</a>    <span class="k">def</span> <span class="nf">update_trained_dataset_models_from_df</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">results_data</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;stores the trained_dataset_models to aid in filtering repeats.&#39;&#39;&#39;</span>
+        <span class="n">results_data</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s1">&#39;dataset-algorithm-parameters&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                                       <span class="n">results_data</span><span class="p">[</span><span class="s1">&#39;_id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span> <span class="o">+</span> <span class="s1">&#39;|&#39;</span> <span class="o">+</span>
+                                       <span class="n">results_data</span><span class="p">[</span><span class="s1">&#39;algorithm&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span> <span class="o">+</span> <span class="s1">&#39;|&#39;</span> <span class="o">+</span>
+                                       <span class="n">results_data</span><span class="p">[</span><span class="s1">&#39;parameter_hash&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">phash</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">results_data</span><span class="p">[</span><span class="s1">&#39;parameter_hash&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">phash</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">param_htable</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">phash</span>
+                        <span class="o">+</span><span class="s1">&#39; not in self.param_htable. parameter values: &#39;</span>
+                        <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">results_data</span><span class="p">[</span><span class="s1">&#39;parameters&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+        <span class="c1"># get unique dataset / parameter / classifier combos in results_data</span>
+        <span class="n">d_ml_p</span> <span class="o">=</span> <span class="n">results_data</span><span class="p">[</span><span class="s1">&#39;dataset-algorithm-parameters&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">trained_dataset_models</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">d_ml_p</span><span class="p">)</span></div>
+        
+<div class="viewcode-block" id="BaseRecommender.update_trained_dataset_models_from_rec"><a class="viewcode-back" href="../../../api.html#ai.recommender.base.BaseRecommender.update_trained_dataset_models_from_rec">[docs]</a>    <span class="k">def</span> <span class="nf">update_trained_dataset_models_from_rec</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset_id</span><span class="p">,</span> <span class="n">ml_rec</span><span class="p">,</span> 
+            <span class="n">phash_rec</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;update the recommender&#39;s memory with the new algorithm-parameter </span>
+<span class="sd">        combos that it recommended&#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">dataset_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># datahash = self.dataset_id_to_hash[dataset_id]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">trained_dataset_models</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+                                    <span class="p">[</span><span class="s1">&#39;|&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">dataset_id</span><span class="p">,</span> <span class="n">ml</span><span class="p">,</span> <span class="n">p</span><span class="p">])</span>
+                                    <span class="k">for</span> <span class="n">ml</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">ml_rec</span><span class="p">,</span> <span class="n">phash_rec</span><span class="p">)])</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Penn
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
